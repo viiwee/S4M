@@ -125,37 +125,38 @@ def e_switch_block(k_matrix, i_matrix):
             column1 = int(k_matrix[i][j][0], 16) % 4
             row1 = int(k_matrix[i][j][1], 16) % 4
 
-            column2 = int(k_matrix[i+1][j][0], 16) % 4
-            row2 = int(k_matrix[i+1][j][1], 16) % 4  ############################################BEGIN HERE#######################################
-            logging.debug('key: ' + str(i) + ',' + str(j) + ' Replace column ' + str(column1) +
-                          ' with column ' + str(column2))
-            for k in range(0, matrix_height):  # Runs the column switch on each row of the columns selected
-                # logging.debug('before: ' + str(i_matrix[k]))
-                temp = i_matrix[k][column1]
-                i_matrix[k][column1] = i_matrix[k][column2]
-                i_matrix[k][column2] = temp
-                # logging.debug('after: ' + str(i_matrix[k]))
+            column2 = int(k_matrix[i][j+1][0], 16) % 4
+            row2 = int(k_matrix[i][j+1][1], 16) % 4
+            logging.debug('key: ' + str(i) + ',' + str(j) + ' Replace block [' + str(row1) + ',' + str(column1) + '] '
+                          ' with block [' + str(row2) + ',' + str(column2) + '] ')
+            logging.debug('before: ' + str(i_matrix[row1][column1]) + ',' + str(i_matrix[row2][column2]))
+            temp = i_matrix[row1][column1]
+            i_matrix[row1][column1] = i_matrix[row2][column2]
+            i_matrix[row2][column2] = temp
+            logging.debug('after: ' + str(i_matrix[row1][column1]) + ',' + str(i_matrix[row2][column2]))
     logging.debug('e_switch_block final matrix: ' + str(i_matrix))
     return i_matrix
 
 def d_switch_block(k_matrix, i_matrix):
-    logging.debug('Beginning decrypt_switchColumn')
-    logging.debug('d_switch_column initial matrix: ' + str(i_matrix))
+    logging.debug('Beginning decrypt_switchBlock')
+    logging.debug('d_switch_block initial matrix: ' + str(i_matrix))
     matrix_width = len(k_matrix[0])
     matrix_height = len(k_matrix[0])
     for i in range(matrix_height - 1, -1, -1):  # Goes through each row
-        for j in range(matrix_width - 1, -1, -1):  # Goes through each column
+        for j in range(matrix_width - 2, -1, -2):  # Goes through each column
             column1 = int(k_matrix[i][j][0], 16) % 4
-            column2 = int(k_matrix[i][j][1], 16) % 4
-            # logging.debug('key: ' + str(i) + ',' + str(j) + ' Replace column ' + str(column1) +
-            #               ' with column ' + str(column2))
-            for k in range(0, matrix_height):  # Runs the column switch on each row of the columns selected
-                # logging.debug('before: ' + str(i_matrix[k]))
-                temp = i_matrix[k][column1]
-                i_matrix[k][column1] = i_matrix[k][column2]
-                i_matrix[k][column2] = temp
-                # logging.debug('after: ' + str(i_matrix[k]))
-    logging.debug('d_switch_column final matrix: ' + str(i_matrix))
+            row1 = int(k_matrix[i][j][1], 16) % 4
+
+            column2 = int(k_matrix[i][j + 1][0], 16) % 4
+            row2 = int(k_matrix[i][j + 1][1], 16) % 4
+            logging.debug('key: ' + str(i) + ',' + str(j) + ' Replace block [' + str(row1) + ','
+                          + str(column1) + '] with block [' + str(row2) + ',' + str(column2) + '] ')
+            logging.debug('before: ' + str(i_matrix[row1][column1]) + ',' + str(i_matrix[row2][column2]))
+            temp = i_matrix[row1][column1]
+            i_matrix[row1][column1] = i_matrix[row2][column2]
+            i_matrix[row2][column2] = temp
+            logging.debug('after: ' + str(i_matrix[row1][column1]) + ',' + str(i_matrix[row2][column2]))
+    logging.debug('d_switch_block final matrix: ' + str(i_matrix))
     return i_matrix
 
 
@@ -167,6 +168,7 @@ def encrypt_matrix(input_array, k_matrix):
             i_matrix = xor_matrices(k_matrix, i_matrix)
             i_matrix = e_switch_column(k_matrix, i_matrix)
             i_matrix = e_switch_row(k_matrix, i_matrix)
+            i_matrix = e_switch_block(k_matrix, i_matrix)
             logging.debug('Matrix ' + str(i) + ', Round: ' + str(j) + ': ' + str(i_matrix))
         input_array[i] = i_matrix
     return input_array
@@ -174,9 +176,10 @@ def encrypt_matrix(input_array, k_matrix):
 
 def decrypt_matrix(input_array, k_matrix):
     for i in range(0, len(input_array)):
-        logging.debug('Beginning encryption of Array ' + str(i) + ': ' + str(input_array[i]))
+        logging.debug('Beginning decryption of Array ' + str(i) + ': ' + str(input_array[i]))
         i_matrix = input_array[i]
         for j in range(0, 20):
+            i_matrix = d_switch_block(k_matrix, i_matrix)
             i_matrix = d_switch_row(k_matrix, i_matrix)
             i_matrix = d_switch_column(k_matrix, i_matrix)
             i_matrix = xor_matrices(k_matrix, i_matrix)

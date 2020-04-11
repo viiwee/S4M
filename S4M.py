@@ -7,7 +7,7 @@ import _S4M
 import random
 
 # Begin log
-logging.basicConfig(filename='S4M-Main.log', level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='S4M-Main.log', level=logging.INFO, format=' %(asctime)s - %(levelname)s - %(message)s')
 logging.debug('Beginning of Program')
 
 # Set Constants
