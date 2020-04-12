@@ -7,7 +7,7 @@ import _S4M
 import random
 
 # Begin log
-logging.basicConfig(filename='S4M-Main.log', level=logging.INFO, format=' %(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='S4M-Main.log', level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
 logging.debug('Beginning of Program')
 
 # Set Constants
@@ -21,10 +21,13 @@ matrix_str_length = matrix_width * matrix_height * 2 - (matrix_salt_length * 2) 
 
 # Create fake inputs
 usr_input = 'matthew fisher is a purdue student studying cybersecurity'.encode()
+usr_input_plain = usr_input.decode()
 key = 'cnit370'.encode()
 
 # Convert usr_input to hex
 usr_input = usr_input.hex()
+
+initial_hex = usr_input
 
 # Create the 16 byte key
 key = SHA256.new(key).digest()
@@ -36,45 +39,19 @@ k_matrix = _S4M.create_matrix(hashkey, matrix_width, matrix_height)
 logging.debug('Key Matrix: ' + str(k_matrix))
 
 # Split input into an array
-input_array = []
-for i in range(0, len(usr_input), matrix_str_length):
-
-    # Create the string that this matrix will contain
-    input_append = usr_input[i:i + matrix_str_length]
-
-    # Add padding
-    if len(input_append) < matrix_str_length:
-        diff = (matrix_str_length - len(input_append)) // 2  # Dividing by 2 so that append can append a whole hex char
-        input_append += '00' * diff  # Append 00 as padding
-
-    # Add Salt
-    for j in range(0, matrix_salt_length*2):
-        input_append += random.choice('0123456789abcdef')
-    logging.debug('Created salt: ' + input_append[28:32])  # 28:32 so that it selects the last 2 bytes
-
-    # Convert the string to a matrix
-    input_append = _S4M.create_matrix(input_append, matrix_width, matrix_height)
-
-    # Append the matrix to the list of matrices
-    input_array.append(input_append)
-logging.debug('input_array: ' + str(input_array))
+input_array = _S4M.create_matrix_array(usr_input, matrix_str_length, matrix_width, matrix_height, True)
 
 # Print matrix before encryption
-print(input_array)
+print('Input: ' + usr_input_plain)
+print('Inital hex before encryp: ' + str(initial_hex))
+print('Matrix before encryption: ' + str(input_array))
 
 # Send each matrix for encrypting
-input_array = _S4M.encrypt_matrix(input_array, k_matrix)
-print(input_array)
+encrypted_string = _S4M.encrypt_matrix(input_array, k_matrix)
+print('String after encyption: ' + encrypted_string)
 
 # Print matrix after decryption
-print(_S4M.decrypt_matrix(input_array, k_matrix))
 
+print('Final output: ' + _S4M.decrypt_matrix(encrypted_string, k_matrix).decode('utf-8'))
 
-
-
-# For decoding
-test_hex = '72736563757269747900000000000000'
-test_string = bytearray.fromhex(test_hex)
-stripped_test = test_string.strip(b'\x00')
-print(str(stripped_test.decode()))
 

@@ -1,5 +1,5 @@
 import logging
-
+import random
 
 def create_matrix(string, width, height):
     i = 0
@@ -11,6 +11,58 @@ def create_matrix(string, width, height):
             i += 2
         matrix.append(newrow)
     return matrix
+
+
+def create_matrix_array(input_string, char_per_matrix, matrix_width, matrix_height, pad_salt):
+    matrix_array = []
+    for i in range(0, len(input_string), char_per_matrix):
+
+        # Create the string that this matrix will contain
+        input_append = input_string[i:i + char_per_matrix]
+
+        # If padding & salting enabled, do that now
+        if pad_salt:
+            # Add padding
+            if len(input_append) < char_per_matrix:
+                diff = (char_per_matrix - len(
+                    input_append)) // 2  # Dividing by 2 so that append can append a whole hex char
+                input_append += '00' * diff  # Append 00 as padding
+
+            # Add Salt
+            for j in range(0, char_per_matrix * 2):
+                input_append += random.choice('0123456789abcdef')
+            logging.debug('Created salt: ' + input_append[28:32])  # 28:32 so that it selects the last 2 bytes
+
+        # Convert the string to a matrix
+        input_append = create_matrix(input_append, matrix_width, matrix_height)
+
+        # Append the matrix to the list of matrices
+        matrix_array.append(input_append)
+    logging.debug('Created matrix_array: ' + str(matrix_array))
+    return matrix_array
+
+
+def create_string(matrix, remove_salt):
+    logging.debug('Converting ' + str(matrix))
+    # print('Create String')
+    o_string = ''
+    for i in matrix:
+        logging.debug(i)
+        countj = 0
+        for j in i:
+            logging.debug(j)
+            countk = 0
+            for k in j:
+                if remove_salt and countj == 3 and countk >= 2:
+                    logging.debug('skip')
+                    continue
+                logging.debug('Adding ' + k)
+                o_string += k
+                countk += 1
+            countj += 1
+    logging.debug('Create string final: ' + o_string)
+    logging
+    return o_string
 
 
 def xor_matrices(matrix1, matrix2):
@@ -171,10 +223,12 @@ def encrypt_matrix(input_array, k_matrix):
             i_matrix = e_switch_block(k_matrix, i_matrix)
             logging.debug('Matrix ' + str(i) + ', Round: ' + str(j) + ': ' + str(i_matrix))
         input_array[i] = i_matrix
-    return input_array
+    o_string = create_string(input_array,False)
+    return o_string
 
 
-def decrypt_matrix(input_array, k_matrix):
+def decrypt_matrix(encrypted_string, k_matrix):
+    input_array = create_matrix_array(encrypted_string, 32, 4, 4, False)
     for i in range(0, len(input_array)):
         logging.debug('Beginning decryption of Array ' + str(i) + ': ' + str(input_array[i]))
         i_matrix = input_array[i]
@@ -185,4 +239,7 @@ def decrypt_matrix(input_array, k_matrix):
             i_matrix = xor_matrices(k_matrix, i_matrix)
             logging.debug('Matrix ' + str(i) + ', Round: ' + str(j) + ': ' + str(i_matrix))
         input_array[i] = i_matrix
-    return input_array
+    o_string = create_string(input_array, True)
+    o_string = bytearray.fromhex(o_string)
+    o_string = o_string.strip(b'\x00')
+    return o_string
