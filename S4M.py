@@ -17,23 +17,10 @@ parser.add_argument('key', help='Key to be used for encryption/decryption', type
 args = parser.parse_args()
 
 
+# Call encryption or decryption
 if args.encrypt:
     print(_S4M.encrypt_matrix(args.encrypt, args.key, args.verbose))
 elif args.decrypt:
     print(_S4M.decrypt_matrix(args.decrypt, args.key, args.verbose))
 
 exit()
-
-
-
-
-
-# Send each matrix for encrypting
-
-encrypted_string = _S4M.encrypt_matrix(input_array, k_matrix)
-logging.info('String after encryption : ' + encrypted_string)
-
-# Print matrix after decryption
-output = _S4M.decrypt_matrix(encrypted_string, k_matrix).decode()
-logging.info('Final output            : ' + output)
-print(output)

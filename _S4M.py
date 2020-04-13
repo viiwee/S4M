@@ -29,7 +29,7 @@ def create_matrix(string):
 def create_matrix_array(input_string, pad_salt):
     if pad_salt:
         char_per_matrix = matrix_str_length
-    else: # If we are not adding a salt or padding, add the length of the salt so that the matrix will also
+    else:  # If we are not adding a salt or padding, add the length of the salt so that the matrix will also
         # pull that in
         char_per_matrix = matrix_str_length + 2 * matrix_salt_length
     total_per_matrix = matrix_width * matrix_height * 2
