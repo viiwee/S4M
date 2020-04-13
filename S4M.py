@@ -1,57 +1,39 @@
-import sys
-import base64
-from Crypto.Cipher import AES
-from Crypto.Hash import SHA256
 import logging
 import _S4M
-import random
+import argparse
 
 # Begin log
-logging.basicConfig(filename='S4M-Main.log', level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='S4M-Main.log', level=logging.INFO, format=' %(asctime)s - %(levelname)s - %(message)s')
 logging.debug('Beginning of Program')
 
-# Set Constants
-matrix_width = 4
-matrix_height = 4
-matrix_salt_length = 2  # Bytes
-matrix_str_length = matrix_width * matrix_height * 2 - (matrix_salt_length * 2)  # Will give i for the length of the user
-# input, in steps of the number of hex characters in each matrix. The number of hex characters per matrix will be
-# 2*height*width - 4. The -4 takes care of the two salt bytes.
-# There are two digits for each hex character. Ex: 00 is the value for NULL
 
-# Create fake inputs
-usr_input = 'matthew fisher is a purdue student studying cybersecurity'.encode()
-usr_input_plain = usr_input.decode()
-key = 'cnit370'.encode()
+# Parse arguments
+parser = argparse.ArgumentParser()
+encrypt_decrypt_group = parser.add_mutually_exclusive_group()
+encrypt_decrypt_group.add_argument('-e', '--encrypt', help='Encrypt an input string', type=str)
+encrypt_decrypt_group.add_argument('-d', '--decrypt', help='Decrypt an input string', type=str)
+parser.add_argument('-v', '--verbose', help='Display verbose output', action='store_true')
+parser.add_argument('key', help='Key to be used for encryption/decryption', type=str)
+args = parser.parse_args()
 
-# Convert usr_input to hex
-usr_input = usr_input.hex()
 
-initial_hex = usr_input
+if args.encrypt:
+    print(_S4M.encrypt_matrix(args.encrypt, args.key, args.verbose))
+elif args.decrypt:
+    print(_S4M.decrypt_matrix(args.decrypt, args.key, args.verbose))
 
-# Create the 16 byte key
-key = SHA256.new(key).digest()
-hashkey = key.hex()[:32]
-logging.debug('Hex key: ' + hashkey)
+exit()
 
-# Create the key matrix
-k_matrix = _S4M.create_matrix(hashkey, matrix_width, matrix_height)
-logging.debug('Key Matrix: ' + str(k_matrix))
 
-# Split input into an array
-input_array = _S4M.create_matrix_array(usr_input, matrix_str_length, matrix_width, matrix_height, True)
 
-# Print matrix before encryption
-print('Input: ' + usr_input_plain)
-print('Inital hex before encryp: ' + str(initial_hex))
-print('Matrix before encryption: ' + str(input_array))
+
 
 # Send each matrix for encrypting
+
 encrypted_string = _S4M.encrypt_matrix(input_array, k_matrix)
-print('String after encyption: ' + encrypted_string)
+logging.info('String after encryption : ' + encrypted_string)
 
 # Print matrix after decryption
-
-print('Final output: ' + _S4M.decrypt_matrix(encrypted_string, k_matrix).decode('utf-8'))
-
-
+output = _S4M.decrypt_matrix(encrypted_string, k_matrix).decode()
+logging.info('Final output            : ' + output)
+print(output)
