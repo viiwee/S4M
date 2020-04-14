@@ -243,24 +243,22 @@ def encrypt_matrix(plaintext_string, key, verbose):
     # Log the plaintext input
     if verbose: print('Input                   : ' + plaintext_string)
 
-    plaintext_string = plaintext_string.encode().hex()
-    k_matrix = create_key_matrix(key)
-    input_array = create_matrix_array(plaintext_string, True)
+    plaintext_string = plaintext_string.encode().hex()  # Encode the input string and convert it to hex
+    k_matrix = create_key_matrix(key)  # Using the plaintext key, create the key matrix
+    input_array = create_matrix_array(plaintext_string, True)  # Using the plaintext string (which is now in hex)
+    # convert it to an array of matrices
 
     # Log plaintext array string
     if verbose: print('String before encryption: ' + create_string(input_array, False))
-
-    for i in range(0, len(input_array)):
-        logging.debug('Beginning encryption of Array ' + str(i) + ': ' + str(input_array[i]))
-        i_matrix = input_array[i]
-        for j in range(0, repetitions):
-            i_matrix = xor_matrices(k_matrix, i_matrix)
-            i_matrix = e_switch_column(k_matrix, i_matrix)
-            i_matrix = e_switch_row(k_matrix, i_matrix)
-            i_matrix = e_switch_block(k_matrix, i_matrix)
-            logging.debug('Matrix ' + str(i) + ', Round: ' + str(j) + ': ' + str(i_matrix))
-        input_array[i] = i_matrix
-    o_string = create_string(input_array, False)
+    for i_matrix in input_array:  # Goes through each matrix. i_matrix represents a matrix
+        logging.debug('Beginning encryption of Array: ' + str(i_matrix))
+        for j in range(0, repetitions):  # Goes through each round of scrambling
+            i_matrix = xor_matrices(k_matrix, i_matrix)     # XOR
+            i_matrix = e_switch_column(k_matrix, i_matrix)  # SwitchColumn
+            i_matrix = e_switch_row(k_matrix, i_matrix)     # SwitchRow
+            i_matrix = e_switch_block(k_matrix, i_matrix)   # SwitchBlock
+            logging.debug('Round: ' + str(j) + ': ' + str(i_matrix))
+    o_string = create_string(input_array, False)  # Return the array of matrices back to a string
 
     # Log plaintext array string
     if verbose: print('String after encryption : ' + create_string(input_array, False))
@@ -274,16 +272,14 @@ def decrypt_matrix(encrypted_string, key, verbose):
     k_matrix = create_key_matrix(key)
     input_array = create_matrix_array(encrypted_string, False)
 
-    for i in range(0, len(input_array)):
-        logging.debug('Beginning decryption of Array ' + str(i) + ': ' + str(input_array[i]))
-        i_matrix = input_array[i]
+    for i_matrix in input_array:
+        logging.debug('Beginning decryption of Array: ' + str(i_matrix))
         for j in range(0, repetitions):
             i_matrix = d_switch_block(k_matrix, i_matrix)
             i_matrix = d_switch_row(k_matrix, i_matrix)
             i_matrix = d_switch_column(k_matrix, i_matrix)
             i_matrix = xor_matrices(k_matrix, i_matrix)
-            logging.debug('Matrix ' + str(i) + ', Round: ' + str(j) + ': ' + str(i_matrix))
-        input_array[i] = i_matrix
+            logging.debug('Round: ' + str(j) + ': ' + str(i_matrix))
     o_string = create_string(input_array, True)
     o_string = bytearray.fromhex(o_string)
     o_string = o_string.strip(b'\x00').decode()  # Strip padding off the string
