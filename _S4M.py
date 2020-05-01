@@ -35,7 +35,6 @@ def create_matrix_array(input_string, pad_salt):
     total_per_matrix = matrix_width * matrix_height * 2
     matrix_array = []
     for i in range(0, len(input_string), char_per_matrix):  # This jumps by the length of an entire matrix at one
-
         # Create the string that this matrix will contain (Length of strings in 1 matrix)
         input_append = input_string[i:i + char_per_matrix]
         logging.debug('i: ' + str(i) + ' i+CPM: ' + str(i + char_per_matrix))
@@ -46,18 +45,11 @@ def create_matrix_array(input_string, pad_salt):
             if len(input_append) < total_per_matrix:
                 diff = (char_per_matrix - len(input_append)) // 2  # Dividing by 2 so that append can append a whole hex char
                 input_append += '00' * diff  # Append 00 as padding
-
             # Add Salt
             for j in range(0, matrix_salt_length):
                 input_append += random.choice('0123456789abcdef') + random.choice('0123456789abcdef')
-            # Debug and display only the last bytes that contain the salt
-            logging.debug('Created salt: ' + input_append[matrix_str_length:matrix_str_length + 2*matrix_salt_length])
-
-        # Convert the string to a matrix
-        input_append = create_matrix(input_append)
-
-        # Append the matrix to the list of matrices
-        matrix_array.append(input_append)
+        input_append = create_matrix(input_append)  # Convert the string to a matrix
+        matrix_array.append(input_append)  # Append the matrix to the list of matrices
     logging.debug('Created matrix_array: ' + str(matrix_array))
     return matrix_array
 
